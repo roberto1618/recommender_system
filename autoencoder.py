@@ -13,3 +13,5 @@ def autoencoder_model(x_train, x_test, epochs = 50, batch_size = 64, encoding_di
     autoencoder.compile(optimizer = optimizer, loss = loss)
 
     autoencoder.fit(x_train, x_train, epochs = epochs, batch_size = batch_size, validation_data = (x_test, x_test), verbose = 0)
+
+    return autoencoder
