@@ -6,8 +6,9 @@ from tensorflow.keras.models import Model
 #from autoencoder import autoencoder_model
 from data_clean import data_clean
 from scipy.sparse import csr_matrix
-from sklearn.model_selection import train_test_split
+#from sklearn.model_selection import train_test_split
 
+# Initial functions
 # Autoencoder builder
 def autoencoder_model(x_train, epochs = 800, batch_size = 16, encoding_dim = 5, hidden_activation = 'relu', optimizer = 'adam', loss = 'binary_crossentropy'): #x_test,
     input_dim = x_train.shape[1]
@@ -25,6 +26,10 @@ def autoencoder_model(x_train, epochs = 800, batch_size = 16, encoding_dim = 5, 
     autoencoder.fit(x_train, x_train, epochs = epochs, batch_size = batch_size, verbose = 1) #, validation_data = (x_test, x_test)
 
     return autoencoder
+
+# Initial parameters
+n_recom = 5
+final_recom = 3
 
 # Read data
 data = pd.read_csv('test_data_recommender.csv', sep = ';')
@@ -75,7 +80,6 @@ predictions_melted = pd.melt(predictions_df, id_vars = ['client'], value_vars = 
 predictions_melted["rank"] = predictions_melted.groupby("client")["value"].rank("dense", ascending=False)
 
 # Final recommendations
-n_recom = 5
 top_recommendations = predictions_melted[(predictions_melted['rank']>=1) & (predictions_melted['rank']<=n_recom)].sort_values('client')
 
 # Change the value of recommendation for the name
@@ -110,7 +114,7 @@ top_recommendations = pd.melt(top_recommendations, id_vars = ['id_client'], valu
 top_recommendations = top_recommendations.loc[top_recommendations['value'].notnull(),:]
 top_recommendations['variable'] = top_recommendations['variable'].map(lambda x: x.lstrip('rec_')).astype(int)
 top_recommendations['rank'] = top_recommendations.groupby('id_client')['variable'].rank('dense')
-top_recommendations = top_recommendations.loc[top_recommendations['rank']<4,:]
+top_recommendations = top_recommendations.loc[top_recommendations['rank']<=final_recom,:]
 top_recommendations['rank'] = 'rec_' + top_recommendations['rank'].astype(int).astype(str)
 top_recommendations = top_recommendations.pivot(index = 'id_client', columns = 'rank', values = 'value')
 top_recommendations.columns.name = None

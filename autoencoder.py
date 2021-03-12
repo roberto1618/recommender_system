@@ -1,5 +1,8 @@
 # Model to calculate recommendations. The autoencoder expects binary vectors which the purchases
-def autoencoder_model(x_train, x_test, epochs = 50, batch_size = 64, encoding_dim = 25, hidden_activation = 'relu', optimizer = 'adam', loss = 'binary_crossentropy'):
+from tensorflow.keras.layers import Dense, Input
+from tensorflow.keras.models import Model
+
+def autoencoder_model(x_train, epochs = 800, batch_size = 16, encoding_dim = 5, hidden_activation = 'relu', optimizer = 'adam', loss = 'binary_crossentropy'): #x_test,
     input_dim = x_train.shape[1]
     input_layer = Input(shape = (input_dim,))
     encoding_layer = Dense(encoding_dim, activation = hidden_activation)
@@ -12,6 +15,6 @@ def autoencoder_model(x_train, x_test, epochs = 50, batch_size = 64, encoding_di
 
     autoencoder.compile(optimizer = optimizer, loss = loss)
 
-    autoencoder.fit(x_train, x_train, epochs = epochs, batch_size = batch_size, validation_data = (x_test, x_test), verbose = 0)
+    autoencoder.fit(x_train, x_train, epochs = epochs, batch_size = batch_size, verbose = 1) #, validation_data = (x_test, x_test)
 
     return autoencoder
