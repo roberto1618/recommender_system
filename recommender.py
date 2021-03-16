@@ -106,19 +106,22 @@ for r in range(1, n_recom + 1):
     top_recommendations.loc[top_recommendations['rec_' + str(r)].str.contains("remove"), 'rec_' + str(r)] = None
 
 # Remove duplicates
-top_recommendations = top_recommendations[['id_client'] + ['rec_' + str(r) for r in range(1, n_recom + 1)]]
+top_recommendations['item'] = top_recommendations.groupby(['id_client'])['item'].transform(lambda x : ', '.join(x))
+top_recommendations = top_recommendations[['id_client', 'item'] + ['rec_' + str(r) for r in range(1, n_recom + 1)]]
 top_recommendations = top_recommendations.drop_duplicates()
 
 # Get only the final recommendations
-top_recommendations = pd.melt(top_recommendations, id_vars = ['id_client'], value_vars = ['rec_' + str(r) for r in range(1, n_recom + 1)])
+top_recommendations = pd.melt(top_recommendations, id_vars = ['id_client', 'item'], value_vars = ['rec_' + str(r) for r in range(1, n_recom + 1)])
 top_recommendations = top_recommendations.loc[top_recommendations['value'].notnull(),:]
 top_recommendations['variable'] = top_recommendations['variable'].map(lambda x: x.lstrip('rec_')).astype(int)
-top_recommendations['rank'] = top_recommendations.groupby('id_client')['variable'].rank('dense')
+top_recommendations['rank'] = top_recommendations.groupby(['id_client', 'item'])['variable'].rank('dense')
 top_recommendations = top_recommendations.loc[top_recommendations['rank']<=final_recom,:]
 top_recommendations['rank'] = 'rec_' + top_recommendations['rank'].astype(int).astype(str)
-top_recommendations = top_recommendations.pivot(index = 'id_client', columns = 'rank', values = 'value')
-top_recommendations.columns.name = None
-top_recommendations = top_recommendations.reset_index()
+final_recommendations = top_recommendations.pivot(index = 'id_client', columns = 'rank', values = 'value')
+final_recommendations.columns.name = None
+final_recommendations = final_recommendations.reset_index()
+final_recommendations = pd.merge(final_recommendations, top_recommendations[['id_client', 'item']].drop_duplicates(), on = 'id_client', how = 'left')
+final_recommendations = final_recommendations[['id_client', 'item'] + ['rec_' + str(r) for r in range(1, final_recom + 1)]]
+final_recommendations = final_recommendations.rename(columns = {'item': 'purchases'})
 
-
-print(top_recommendations)
+print(final_recommendations.head())
