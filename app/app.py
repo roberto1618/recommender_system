@@ -61,7 +61,7 @@ content_reco = html.Div([
                         'Upload your data here. Drag or ', html.A('Select from folder...')
                     ]),
                     style = {
-                        'width': '25%',
+                        'width': '50%',
                         'height': '60px',
                         'lineHeight': '60px',
                         'borderWidth': '1px',
@@ -71,15 +71,49 @@ content_reco = html.Div([
                         'margin': '10px'
                     },
                     multiple = True
-                    )
-            
+                    ),
+                #md = 4
             ),
             dbc.Col(
-                html.Div(id = 'recommendation-output')
+                html.Div(id = 'recommendation-output'),
+                #md = 4
             )
         ]
     )
 ])
+
+tab1_content = dbc.Card(
+    dbc.CardBody(
+        [
+            content_reco
+        ]
+    )
+)
+
+tab2_content = dbc.Card(
+    dbc.CardBody(
+        [
+           html.Div(id = 'bar-plot-data') 
+        ]
+    )
+)
+
+tab3_content = dbc.Card(
+    dbc.CardBody(
+        [
+            html.Div('More info')
+        ]
+    )
+)
+
+tabs = dbc.Tabs(
+    [
+        dbc.Tab(tab1_content, label = 'Recommender'),
+        dbc.Tab(tab2_content, label = 'Summary items'),
+        dbc.Tab(tab3_content, label = 'More info')
+    ]
+)
+
 # Layout
 app.layout = html.Div(style = {'backgroundColor': colors['background']}, children = [
     html.H1(
@@ -90,7 +124,10 @@ app.layout = html.Div(style = {'backgroundColor': colors['background']}, childre
             'background': '#F7DCDD'
         }
     ),
-    # Define tabs
+    tabs,
+])
+
+""" # Define tabs
     dcc.Tabs(id = "tabs-styled-with-inline", value = 'reco', children = [
         # First tab. Show the recommendations by customer
         dcc.Tab(label = 'Recommender', value = 'reco', style = tab_style, selected_style = tab_selected_style,
@@ -105,8 +142,7 @@ app.layout = html.Div(style = {'backgroundColor': colors['background']}, childre
         # Third tab. More info about the app
         dcc.Tab(label = 'More info', value = 'info', style = tab_style, selected_style = tab_selected_style),
     ], style = tabs_styles),
-    html.Div(id = 'tabs-content-inline'),
-])
+    html.Div(id = 'tabs-content-inline'), """
 
 # Function to read the uploaded file
 def parse_contents(contents, filename, date):
@@ -294,7 +330,14 @@ def recommender_fun(list_of_contents, list_of_names, list_of_dates):
         final_recommendations = final_recommendations[['id_client', 'item'] + ['rec_' + str(r) for r in range(1, final_recom + 1)]]
         final_recommendations = final_recommendations.rename(columns = {'item': 'purchases'})
 
-        final_recommendations = generate_table(final_recommendations)
+        #final_recommendations = generate_table(final_recommendations)
+        final_recommendations = dash_table.DataTable(
+            data = final_recommendations.to_dict('records'),
+            columns = [
+                {'name': i, 'id': i} for i in final_recommendations.columns
+            ],
+            export_format = 'csv'
+        )
         return final_recommendations
 
 # Execute the app
