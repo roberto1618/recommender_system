@@ -1,6 +1,7 @@
 # Read packages
 import dash
 import dash_core_components as dcc
+import dash_bootstrap_components as dbc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
 import plotly.express as px
@@ -17,7 +18,7 @@ from tensorflow.keras.models import Model
 #from data_clean import data_clean
 from scipy.sparse import csr_matrix
 
-app = dash.Dash()
+app = dash.Dash(__name__, external_stylesheets = [dbc.themes.BOOTSTRAP])
 
 # Define tabs styles
 tabs_styles = {
@@ -49,6 +50,36 @@ colors = {
     'text': '#000000'
 }
 
+# Content for uploading the data
+content_reco = html.Div([
+    dbc.Row(
+        [
+            dbc.Col(                    
+                dcc.Upload(
+                    id = 'upload-data',
+                    children = html.Div([
+                        'Upload your data here. Drag or ', html.A('Select from folder...')
+                    ]),
+                    style = {
+                        'width': '25%',
+                        'height': '60px',
+                        'lineHeight': '60px',
+                        'borderWidth': '1px',
+                        'borderStyle': 'dashed',
+                        'borderRadius': '5px',
+                        'textAlign': 'center',
+                        'margin': '10px'
+                    },
+                    multiple = True
+                    )
+            
+            ),
+            dbc.Col(
+                html.Div(id = 'recommendation-output')
+            )
+        ]
+    )
+])
 # Layout
 app.layout = html.Div(style = {'backgroundColor': colors['background']}, children = [
     html.H1(
@@ -65,25 +96,7 @@ app.layout = html.Div(style = {'backgroundColor': colors['background']}, childre
         dcc.Tab(label = 'Recommender', value = 'reco', style = tab_style, selected_style = tab_selected_style,
                 children = [
                     html.H3('Upload your data and get the recommendations!'),
-                    # Upload the data
-                    dcc.Upload(
-                        id = 'upload-data',
-                        children = html.Div([
-                            'Upload your data here. Drag or ', html.A('Select from folder...')
-                        ]),
-                        style = {
-                            'width': '25%',
-                            'height': '60px',
-                            'lineHeight': '60px',
-                            'borderWidth': '1px',
-                            'borderStyle': 'dashed',
-                            'borderRadius': '5px',
-                            'textAlign': 'center',
-                            'margin': '10px'
-                        },
-                        multiple = True
-                    ),
-                    html.Div(id = 'recommendation-output'),
+                    content_reco,
                 ]),
         dcc.Tab(label = 'Summary items', value = 'summ', style = tab_style, selected_style = tab_selected_style,
                 children = [
